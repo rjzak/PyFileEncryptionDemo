@@ -1,0 +1,9 @@
+[project]
+license = "Unlicense"
+name = "file-encryption-demo"
+description = "Python demo showing the use of arrays and encryption/decryption of files."
+readme = "readme.md"
+version = "0.0.0"
+dependencies = [
+    "cryptography >= 50.0.0"
+]
