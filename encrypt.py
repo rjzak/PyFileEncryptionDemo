@@ -14,7 +14,8 @@ def encrypt(password, file_path):
     """Encrypt a file given a password. The password is expanded into bytes
     using PBKDF2 with SHA-256 and 100,000 iterations."""
 
-    contents = open(file_path, "rb").read()
+    with open(file_path, "rb") as file:
+        contents = file.read()
     iv = os.urandom(16)
     salt = os.urandom(30)
     key = hashlib.pbkdf2_hmac(
@@ -25,6 +26,10 @@ def encrypt(password, file_path):
     ct = encryptor.update(contents) + encryptor.finalize()
     return iv, salt, ct
 
+def encrypt_to_file(plain_file, encrypted_file, password):
+    iv, salt, ct = encrypt(password, plain_file)
+    with open(encrypted_file, "wb") as file:
+        file.write(iv + salt + ct)
 
 def decrypt(password, file_path):
     """Decrypt a file given a password. The password is expanded into bytes
@@ -32,7 +37,8 @@ def decrypt(password, file_path):
     AES initialization vector is present as the first 16 bytes, with the salt
     being the following 30 bytes."""
 
-    contents = open(file_path, "rb").read()
+    with open(file_path, "rb") as file:
+        contents = file.read()
     iv = contents[:16]
     salt = contents[16:46]
     contents = contents[46:]
@@ -44,6 +50,10 @@ def decrypt(password, file_path):
     pt = decryptor.update(contents) + decryptor.finalize()
     return pt
 
+def decrypt_to_file(plain_file, encrypted_file, password):
+    pt = decrypt(password, encrypted_file)
+    with open(plain_file, "wb") as file:
+        file.write(pt)
 
 if __name__ == "__main__":
     import sys
@@ -63,8 +73,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if operation == "encrypt":
-        iv, salt, ct = encrypt(password, input_file_path)
-        open(output_file_path, "wb").write(iv + salt + ct)
+        encrypt_to_file(input_file_path, output_file_path, password)
     elif operation == "decrypt":
-        pt = decrypt(password, input_file_path)
-        open(output_file_path, "wb").write(pt)
+        decrypt_to_file(output_file_path, input_file_path, password)
